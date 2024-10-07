@@ -30,13 +30,13 @@ class active {
 
   reflectX(x, cor) {
     this.velX *= -x;
-    this.x -= cor;
+    this.x += cor;
     this.tick();
   }
 
   reflectY(x, cor) {
     this.velY *= -x;
-    this.y -= cor;
+    this.y += cor;
     this.tick();
   }
 
@@ -85,7 +85,6 @@ function setup() {
     main.getBoundingClientRect().height
   );
   background(20);
-  console.log(main.getBoundingClientRect().width);
 }
 
 function draw() {
@@ -122,7 +121,6 @@ addActive.onclick = () => {
   activeArray.push(new active());
   elasticity.push(0.8);
   updateList();
-  console.log(activeArray);
 };
 
 addPassive.onclick = () => {
@@ -140,7 +138,7 @@ function collide(active, passive, elasticity) {
       passive.getPosition().y + passive.getDimensions().height
   ) {
     console.log("Y-collosion");
-    active.reflectY(elasticity, 0);
+    active.reflectY(elasticity, active.getPosition().y - passive.getPosition().y );
   } else if (
     active.getPosition().x + active.getRadius() * 2 > passive.getPosition().x &&
     active.getPosition().x <
@@ -150,15 +148,16 @@ function collide(active, passive, elasticity) {
       passive.getPosition().y + passive.getDimensions().height
   ) {
     console.log("X-collosion");
-    active.reflectX(elasticity, 0);
+    active.reflectX(elasticity, active.getPosition().x - passive.getPosition().x);
   }
 }
 
 let offset = { x: 0, y: 0 };
+let focus;
 
-function mouseDragged() {
-  console.log("mouseDragged");
+function mousePressed(){
   for (let i = 0; i < passiveArray.length; i++) {
+    console.log(passiveArray[i].getPosition());
     if (
       mouseX > passiveArray[i].getPosition().x &&
       mouseX <
@@ -168,16 +167,24 @@ function mouseDragged() {
       mouseY <
         passiveArray[i].getPosition().y + passiveArray[i].getDimensions().height
     ) {
-      if (offset.x != 0) {
-        passiveArray[i].move(mouseX - offset.x, mouseY - offset.y);
-      }
+      console.log(offset.x);
       offset = { x: mouseX, y: mouseY };
+      focus = passiveArray[i];
+      displayProperties(passiveArray[i]);
     }
   }
 }
 
+function mouseDragged() {
+  if (focus) {
+    focus.move(mouseX - offset.x, mouseY - offset.y);
+  }
+  offset = { x: mouseX, y: mouseY };
+}
+
 function mouseReleased() {
   offset = { x: 0, y: 0 };
+  focus = null;
 }
 
 let list = document.getElementById("list");
@@ -185,14 +192,7 @@ updateList();
 
 function updateList() {
   list.innerHTML = "";
-  for (let i = 0; i < activeArray.length; i++) {
-    let li = document.createElement("li");
-    li.innerText = `Active ${i + 1}`;
-    li.onclick = () => {
-      displayProperties(activeArray[i]);
-    };
-    list.appendChild(li);
-  }
+
   for (let i = 0; i < passiveArray.length; i++) {
     let li = document.createElement("li");
     li.innerText = `Passive ${i + 1}`;
@@ -201,7 +201,22 @@ function updateList() {
     };
     list.appendChild(li);
   }
+
+  list.onmouseover = () => {
+    for (let i = 0; i < activeArray.length; i++) {
+      let li = document.createElement("li");
+      li.innerText = `Active ${i + 1}`;
+      li.onclick = () => {
+        displayProperties(activeArray[i]);
+      };
+      list.appendChild(li);
+    }
+  };
 }
+
+list.onmouseout = () => {
+  updateList();
+};
 
 let properties = document.getElementById("properties");
 function displayProperties(obj) {
@@ -211,13 +226,16 @@ function displayProperties(obj) {
     let li = document.createElement("li");
     li.innerText = `${key}: ${obj[key]}`;
     li.onmouseover = () => { 
-      console.log(li.children.length );
       if(li.children.length == 0){
-        console.log("hover");
         let inp = document.createElement("input");
         inp.value = obj[key];
-        inp.onchange = () => {
-          obj[key] = inp.value;
+        inp.type = "range";
+        inp.min = 0;
+        inp.max = obj[key]*3;
+        inp.oninput = () => {
+          offset = {x: 0, y: 0};
+          console.log("changed");
+          obj[key] = (int)(inp.value);
         };
         li.innerText = key + ": ";
         li.appendChild(inp);
