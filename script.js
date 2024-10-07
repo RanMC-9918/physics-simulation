@@ -121,38 +121,52 @@ let addPassive = document.getElementById("addPassive");
 addActive.onclick = () => {
   activeArray.push(new active());
   elasticity.push(0.8);
+  updateList();
   console.log(activeArray);
 };
 
 addPassive.onclick = () => {
   passiveArray.push(new passive());
+  updateList();
 };
 
 function collide(active, passive, elasticity) {
-  if (active.getPosition().x + active.getRadius() > passive.getPosition().x && active.getPosition().x + active.getRadius() < passive.getPosition().x + passive.getDimensions().width && active.getPosition().y + active.getRadius()*2 > passive.getPosition().y && active.getPosition().y < passive.getPosition().y + passive.getDimensions().height) {
+  if (
+    active.getPosition().x + active.getRadius() > passive.getPosition().x &&
+    active.getPosition().x + active.getRadius() <
+      passive.getPosition().x + passive.getDimensions().width &&
+    active.getPosition().y + active.getRadius() * 2 > passive.getPosition().y &&
+    active.getPosition().y <
+      passive.getPosition().y + passive.getDimensions().height
+  ) {
     console.log("Y-collosion");
-    active.reflectY(
-      elasticity, 0
-    );
-    
-  } 
-  else if(active.getPosition().x + active.getRadius()*2 > passive.getPosition().x && active.getPosition().x < passive.getPosition().x + passive.getDimensions().width && active.getPosition().y + active.getRadius() > passive.getPosition().y && active.getPosition().y + active.getRadius() < passive.getPosition().y + passive.getDimensions().height) {
+    active.reflectY(elasticity, 0);
+  } else if (
+    active.getPosition().x + active.getRadius() * 2 > passive.getPosition().x &&
+    active.getPosition().x <
+      passive.getPosition().x + passive.getDimensions().width &&
+    active.getPosition().y + active.getRadius() > passive.getPosition().y &&
+    active.getPosition().y + active.getRadius() <
+      passive.getPosition().y + passive.getDimensions().height
+  ) {
     console.log("X-collosion");
-    active.reflectX(
-      elasticity, 0
-    );
+    active.reflectX(elasticity, 0);
   }
 }
 
 let offset = { x: 0, y: 0 };
-
 
 function mouseDragged() {
   console.log("mouseDragged");
   for (let i = 0; i < passiveArray.length; i++) {
     if (
       mouseX > passiveArray[i].getPosition().x &&
-      mouseX < passiveArray[i].getPosition().x + passiveArray[i].getDimensions().width && mouseY > passiveArray[i].getPosition().y && mouseY < passiveArray[i].getPosition().y + passiveArray[i].getDimensions().height
+      mouseX <
+        passiveArray[i].getPosition().x +
+          passiveArray[i].getDimensions().width &&
+      mouseY > passiveArray[i].getPosition().y &&
+      mouseY <
+        passiveArray[i].getPosition().y + passiveArray[i].getDimensions().height
     ) {
       if (offset.x != 0) {
         passiveArray[i].move(mouseX - offset.x, mouseY - offset.y);
@@ -164,4 +178,51 @@ function mouseDragged() {
 
 function mouseReleased() {
   offset = { x: 0, y: 0 };
+}
+
+let list = document.getElementById("list");
+updateList();
+
+function updateList() {
+  list.innerHTML = "";
+  for (let i = 0; i < activeArray.length; i++) {
+    let li = document.createElement("li");
+    li.innerText = `Active ${i + 1}`;
+    li.onclick = () => {
+      displayProperties(activeArray[i]);
+    };
+    list.appendChild(li);
+  }
+  for (let i = 0; i < passiveArray.length; i++) {
+    let li = document.createElement("li");
+    li.innerText = `Passive ${i + 1}`;
+    li.onclick = () => {
+      displayProperties(passiveArray[i]);
+    };
+    list.appendChild(li);
+  }
+}
+
+let properties = document.getElementById("properties");
+function displayProperties(obj) {
+  properties.innerHTML = "";
+  for (let key in obj) {
+    if (typeof obj.key === "function") continue;
+    let li = document.createElement("li");
+    li.innerText = `${key}: ${obj[key]}`;
+    li.onmouseover = () => { 
+      console.log(li.children.length );
+      if(li.children.length == 0){
+        console.log("hover");
+        let inp = document.createElement("input");
+        inp.value = obj[key];
+        inp.onchange = () => {
+          obj[key] = inp.value;
+        };
+        li.innerText = key + ": ";
+        li.appendChild(inp);
+      }
+    };
+    properties.appendChild(li);
+  }
 }
