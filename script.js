@@ -2,10 +2,10 @@ class active {
   constructor() {
     this.x = 100;
     this.y = 100;
-    this.velX = 25;
+    this.velX = 5;
     this.velY = 1;
     this.accX = 0;
-    this.accY = 2;
+    this.accY = 0.5;
     this.radius = 20;
     this.color = 255;
   }
@@ -30,14 +30,12 @@ class active {
 
   reflectX(x, cor) {
     this.velX *= -x;
-    this.x += cor;
-    this.tick();
+    this.x += cor + 1;
   }
 
   reflectY(x, cor) {
     this.velY *= -x;
-    this.y += cor;
-    this.tick();
+    this.y += cor+1;
   }
 
   move(x, y) {
@@ -130,32 +128,63 @@ addPassive.onclick = () => {
 
 function collide(active, passive, elasticity) {
   if (
-    active.getPosition().x + active.getRadius() > passive.getPosition().x &&
-    active.getPosition().x + active.getRadius() <
+    (active.getPosition().x <
       passive.getPosition().x + passive.getDimensions().width &&
-    active.getPosition().y + active.getRadius() * 2 > passive.getPosition().y &&
-    active.getPosition().y <
-      passive.getPosition().y + passive.getDimensions().height
+      active.getPosition().x > passive.getPosition().x &&
+      active.getPosition().y > passive.getPosition().y - active.getRadius() &&
+      active.getPosition().y + active.getRadius() <
+        passive.getPosition().y + passive.getDimensions().height) ||
+    (active.getPosition().x + active.getRadius() * 2 >
+      passive.getPosition().x &&
+      active.getPosition().x + active.getRadius() * 2 <
+        passive.getPosition().x + passive.getDimensions().width &&
+      active.getPosition().y + active.getRadius() > passive.getPosition().y &&
+      active.getPosition() + active.getRadius() <
+        passive.getPosition().y + passive.getDimensions().height)
   ) {
-    console.log("Y-collosion");
-    active.reflectY(elasticity, active.getPosition().y - passive.getPosition().y );
-  } else if (
-    active.getPosition().x + active.getRadius() * 2 > passive.getPosition().x &&
-    active.getPosition().x <
-      passive.getPosition().x + passive.getDimensions().width &&
-    active.getPosition().y + active.getRadius() > passive.getPosition().y &&
-    active.getPosition().y + active.getRadius() <
-      passive.getPosition().y + passive.getDimensions().height
-  ) {
-    console.log("X-collosion");
-    active.reflectX(elasticity, active.getPosition().x - passive.getPosition().x);
+    let xNorm =
+      ((active.getPosition().x +
+      active.getRadius()) -
+      passive.getPosition().x) / passive.getDimensions().width;
+
+    let yNorm =
+      ((active.getPosition().y +
+      active.getRadius()) -
+      passive.getPosition().y) / passive.getDimensions().height;
+
+    console.log(xNorm, yNorm, active, passive);
+
+    if (Math.abs(xNorm - 0.5) > Math.abs(yNorm - 0.5)){
+      if (xNorm > 0.5){
+        console.log("x collision right")
+        active.reflectX(elasticity, passive.getPosition().x - active.getPosition().x);
+      }
+      else{
+        console.log("x collision left")
+        active.reflectX(elasticity, passive.getPosition().x + passive.getDimensions().width - active.getPosition().x);
+      }
+    }
+    else{
+      if (yNorm > 0.5){
+        console.log("y collision down")
+        active.reflectY(elasticity, passive.getPosition().y - active.getPosition().y);
+      }
+      else{
+        console.log("y collision top")
+        active.reflectY(
+          elasticity,
+          active.getPosition().y - passive.getPosition().y +
+            passive.getDimensions().height
+        );
+      }
+    }
   }
 }
 
 let offset = { x: 0, y: 0 };
 let focus;
 
-function mousePressed(){
+function mousePressed() {
   for (let i = 0; i < passiveArray.length; i++) {
     console.log(passiveArray[i].getPosition());
     if (
@@ -225,17 +254,17 @@ function displayProperties(obj) {
     if (typeof obj.key === "function") continue;
     let li = document.createElement("li");
     li.innerText = `${key}: ${obj[key]}`;
-    li.onmouseover = () => { 
-      if(li.children.length == 0){
+    li.onmouseover = () => {
+      if (li.children.length == 0) {
         let inp = document.createElement("input");
         inp.value = obj[key];
         inp.type = "range";
         inp.min = 0;
-        inp.max = obj[key]*3;
+        inp.max = obj[key] * 3;
         inp.oninput = () => {
-          offset = {x: 0, y: 0};
+          offset = { x: 0, y: 0 };
           console.log("changed");
-          obj[key] = (int)(inp.value);
+          obj[key] = int(inp.value);
         };
         li.innerText = key + ": ";
         li.appendChild(inp);
