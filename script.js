@@ -2,11 +2,11 @@ class active {
   constructor() {
     this.x = 100;
     this.y = 100;
-    this.velX = 5;
+    this.velX = Math.random()*3 + 3;
     this.velY = 1;
     this.accX = 0;
     this.accY = 0.5;
-    this.radius = 20;
+    this.diameter = Math.random() * 10 + 15;
     this.color = 255;
   }
 
@@ -24,8 +24,8 @@ class active {
   getColor() {
     return this.color;
   }
-  getRadius() {
-    return this.radius;
+  getDiameter() {
+    return this.diameter;
   }
 
   reflectX(x, cor) {
@@ -74,7 +74,7 @@ class passive {
 let activeArray = [new active()];
 let passiveArray = [new passive()];
 let elasticity = [0.6];
-let tolerance = 20;
+let tolerance = 30;
 
 let main = document.querySelector("main");
 
@@ -85,7 +85,7 @@ function setup() {
   );
   background(20);
 }
-
+// DRAWDRAWDRAWDRAWDRAWDRAWDRAWDRAWDRAWDRAW_?_?_?_?_?_?_?_?_?_?_?_?_?_?_?_?_?_?_
 function draw() {
   background(20);
   // Add passive objects here
@@ -94,13 +94,15 @@ function draw() {
     ellipse(
       activeArray[i].getPosition().x,
       activeArray[i].getPosition().y,
-      activeArray[i].getRadius()
+      activeArray[i].getDiameter()
     );
     for (let j = 0; j < passiveArray.length; j++) {
       collide(activeArray[i], passiveArray[j], elasticity[i]);
     }
     activeArray[i].tick();
+    if (activeArray[i].getPosition().y > 3000) activeArray.splice(i, 1);
   }
+
 
   for (let i = 0; i < passiveArray.length; i++) {
     fill(passiveArray[i].getColor());
@@ -118,7 +120,7 @@ let addPassive = document.getElementById("addPassive");
 let addCustom = document.getElementById("addCustom");
 
 addCustom.onclick = () => {
-  console.log(addCustom.innerHTML);
+  //console.log(addCustom.innerHTML);
   if (addCustom.innerHTML == "Custom Amount") {
     addCustom.innerHTML = "";
     let inp = document.createElement("input");
@@ -160,72 +162,100 @@ addPassive.onclick = () => {
 };
 
 function collide(active, passive, elasticity) {
-  if (
-    (active.getPosition().x <
-      passive.getPosition().x + passive.getDimensions().width &&
-      active.getPosition().x > passive.getPosition().x &&
-      active.getPosition().y > passive.getPosition().y - active.getRadius() &&
-      active.getPosition().y + active.getRadius() <
-        passive.getPosition().y + passive.getDimensions().height) ||
-    (active.getPosition().x + active.getRadius() * 2 >
-      passive.getPosition().x &&
-      active.getPosition().x + active.getRadius() * 2 <
+    if (
+      (active.getPosition().x <
         passive.getPosition().x + passive.getDimensions().width &&
-      active.getPosition().y + active.getRadius() > passive.getPosition().y &&
-      active.getPosition() + active.getRadius() <
-        passive.getPosition().y + passive.getDimensions().height) ||
-    (active.getPosition().x <
-      passive.getPosition().x + passive.getDimensions().width &&
-      active.getPosition().x > passive.getPosition().x &&
-      active.getPosition().y > passive.getPosition().y &&
-      active.getPosition().y + active.getRadius() <
-        passive.getPosition().y + passive.getDimensions().height)
-  ) {
-    if (
-      active.getPosition().x >
-      passive.getPosition().x + passive.getDimensions().width - tolerance
+        active.getPosition().x > passive.getPosition().x &&
+        active.getPosition().y > passive.getPosition().y - active.getDiameter() &&
+        active.getPosition().y + active.getDiameter() <
+          passive.getPosition().y + passive.getDimensions().height) ||
+      (active.getPosition().x + active.getDiameter() >
+        passive.getPosition().x &&
+        active.getPosition().x + active.getDiameter() <
+          passive.getPosition().x + passive.getDimensions().width &&
+        active.getPosition().y + active.getDiameter() > passive.getPosition().y &&
+        active.getPosition() + active.getDiameter() <
+          passive.getPosition().y + passive.getDimensions().height) ||
+      (active.getPosition().x <
+        passive.getPosition().x + passive.getDimensions().width &&
+        active.getPosition().x > passive.getPosition().x &&
+        active.getPosition().y > passive.getPosition().y &&
+        active.getPosition().y + active.getDiameter() <
+          passive.getPosition().y + passive.getDimensions().height)
     ) {
-      console.log("x collision right");
-      active.reflectX(
-        elasticity,
-        passive.getPosition().x -
-          active.getPosition().x +
-          passive.getDimensions().width
-      );
-    }
-    if (active.getPosition().x < passive.getPosition().x + tolerance) {
-      console.log("x collision left");
-      active.reflectX(
-        elasticity,
-        active.getPosition().x -
-          active.getRadius() -
+      if (
+        active.getPosition().y >
+        passive.getPosition().y + passive.getDimensions().height - tolerance
+      ) {
+        console.log("y collision down");
+        active.reflectY(
+          elasticity,
+          passive.getPosition().y -
+            active.getPosition().y +
+            passive.getDimensions().height -
+            active.getDiameter()
+        );
+      }
+      if (
+        active.getPosition().y + active.getDiameter() <
+        passive.getPosition().y + tolerance
+      ) {
+        console.log("y collision top");
+        active.reflectY(
+          elasticity,
+          active.getPosition().y - passive.getPosition().y - 1
+        );
+      }
+      if (
+        active.getPosition().x >
+        passive.getPosition().x + passive.getDimensions().width - tolerance
+      ) {
+        console.log("x collision right");
+        active.reflectX(
+          elasticity,
           passive.getPosition().x -
-          1
-      );
+            active.getPosition().x +
+            passive.getDimensions().width
+        );
+      }
+      if (active.getPosition().x + active.getDiameter() < passive.getPosition().x + tolerance) {
+        console.log("x collision left");
+        active.reflectX(
+          elasticity,
+          active.getPosition().x -
+            active.getDiameter() -
+            passive.getPosition().x -
+            1
+        );
+      }
+      
     }
-    if (
-      active.getPosition().y >
-      passive.getPosition().y + passive.getDimensions().height - tolerance
-    ) {
-      console.log("y collision down");
-      active.reflectY(
-        elasticity,
-        passive.getPosition().y -
-          active.getPosition().y +
-          passive.getDimensions().height -
-          active.getRadius()
-      );
-    }
-    if (
-      active.getPosition().y + active.getRadius() <
-      passive.getPosition().y + tolerance
-    ) {
-      console.log("y collision top");
-      active.reflectY(
-        elasticity,
-        active.getPosition().y - passive.getPosition().y - 1
-      );
-    }
+}
+
+function selfCollide(active, passive, elasticity) {
+  let yDist = (active.getPosition().y +
+      active.getDiameter()) -
+      (passive.getPosition().y + passive.getDiameter());
+  let xDist = (active.getPosition().x) -
+            (passive.getPosition().x +
+            passive.getDiameter());
+  //console.log(yDist, xDist);
+  let totalDist = Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
+  if (
+    totalDist
+    <
+    active.getDiameter() + passive.getDiameter()
+  ) {
+    console.log("collision");
+    active.reflectX(
+      xDist / totalDist,
+      ((active.getDiameter()+1 + passive.getDiameter()) / totalDist) * xDist - xDist
+    );
+    active.reflectY(
+      yDist / totalDist,
+      ((active.getDiameter() + 1 + passive.getDiameter()) / totalDist) * yDist -
+        yDist
+    );
   }
 }
 
@@ -234,7 +264,7 @@ let focus;
 
 function mousePressed() {
   for (let i = 0; i < passiveArray.length; i++) {
-    console.log(passiveArray[i].getPosition());
+    //console.log(passiveArray[i].getPosition());
     if (
       mouseX > passiveArray[i].getPosition().x &&
       mouseX <
@@ -244,7 +274,7 @@ function mousePressed() {
       mouseY <
         passiveArray[i].getPosition().y + passiveArray[i].getDimensions().height
     ) {
-      console.log(offset.x);
+      //console.log(offset.x);
       offset = { x: mouseX, y: mouseY };
       focus = passiveArray[i];
       displayProperties(passiveArray[i]);
